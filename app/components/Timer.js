@@ -1,28 +1,21 @@
 import React from 'react';
+import { Button, Jumbotron } from 'react-bootstrap'
 
 export default class Timer extends React.Component {
-    handleKeyPress(event) {
-        console.log('Key Pressed: ');
-        console.log(event);
-        if(event.key === 'Enter') {
-            console.log('enter press here! ');
-        }
-    }
 
-    // TODO: You should use keydown and not keypress.
-    // Keypress is usually used only for keys that produce a character output as per the docs
-
-    // Keypress
-    // The keypress event is fired when a key is pressed down and that key normally produces a character value
-
-    // Keydown
-    // The keydown event is fired when a key is pressed down.
-
-    // TODO see: https://developer.mozilla.org/en-US/docs/Web/Accessibility/Keyboard-navigable_JavaScript_widgets
     render() {
         return (
             <div>
-                <input type="text" id="one" onKeyPress={this.handleKeyPress} />
+                <Jumbotron>
+                    <div class="container text-center">
+                        <h1>00:00</h1>
+                        <p>
+                            <Button bsStyle="primary">3..2..1..Go</Button>
+                            <Button bsStyle="primary">Stop</Button>
+                            <Button bsStyle="primary">Reset</Button>
+                        </p>
+                    </div>
+                </Jumbotron>
             </div>
         );
     }

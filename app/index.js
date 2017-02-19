@@ -1,28 +1,21 @@
 import 'babel-polyfill';
 import React from 'react';
-import { render } from 'react-dom';
-// import { browserHistory } from 'react-router';
-// import { syncHistoryWithStore } from 'react-router-redux';
-import { AppContainer } from 'react-hot-loader';
-import HelloWorld from './HelloWorld';
+import ReactDOM from 'react-dom';
+import { Router, Route, IndexRedirect, hashHistory } from 'react-router';
+import Layout from './components/Layout';
+import Timer from './components/Timer';
+import Settings from './components/Settings';
 
-// const history = syncHistoryWithStore(browserHistory, store);
+const app = document.getElementById('app');
 
-render(
-    <AppContainer>
-        <HelloWorld history={history} />
-    </AppContainer>,
-    document.getElementById('app')
-);
-
-if (module.hot) {
-    module.hot.accept('./HelloWorld', () => {
-        const NewHelloWorld = require('./HelloWorld').default;
-        render(
-            <AppContainer>
-                <NewHelloWorld history={history} />
-            </AppContainer>,
-            document.getElementById('app')
-        );
-    });
-}
+ReactDOM.render(
+    <Router history={hashHistory}>
+        <Route path="/" component={Layout}>
+            <IndexRedirect to="/fortime" />
+            <Route path="/fortime" component={Timer} />
+            <Route path="/amrap" component={Timer} />
+            <Route path="/tabata" component={Timer} />
+            <Route path="/settings" component={Settings} />
+        </Route>
+    </Router>,
+app);
