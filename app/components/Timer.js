@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Jumbotron } from 'react-bootstrap'
+import { Button, Jumbotron } from 'react-bootstrap';
 
 export default class Timer extends React.Component {
     constructor(props) {
@@ -13,19 +13,31 @@ export default class Timer extends React.Component {
         };
     }
 
+    componentDidMount() {
+        this.timerID = setInterval(
+            () => this.tick(),
+            500
+        );
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.timerID);
+    }
+
+
     start() {
-        console.log('start()')
+        const start = Date.now();
         this.setState({
-            start: Date.now(),
+            start: start,
             end: null,
             isStarted: true,
             isStopped: false
         });
     }
     stop() {
-        const end = Date.now()
+        const end = Date.now();
         const elapsedTime = end - this.state.start;
-        const displayTime = this.getDisplayTime(elapsedTime)
+        const displayTime = this.getDisplayTime(elapsedTime);
 
         this.setState({
             end: end,
@@ -45,26 +57,14 @@ export default class Timer extends React.Component {
     }
 
     handleInput(e) {
-        console.log(e);
         const time  = e.target.value;
-        this.setState({time})
-    }
-
-    componentDidMount() {
-        this.timerID = setInterval(
-            () => this.tick(),
-            500
-        );
-    }
-
-    componentWillUnmount() {
-        clearInterval(this.timerID);
+        this.setState({time});
     }
 
     tick() {
         if (this.state.isStarted && !this.state.isStopped) {
             const elapsedTime = Date.now() - this.state.start;
-            const displayTime = this.getDisplayTime(elapsedTime)
+            const displayTime = this.getDisplayTime(elapsedTime);
 
             this.setState({
                 time: displayTime,
@@ -73,15 +73,15 @@ export default class Timer extends React.Component {
     }
 
     getDisplayTime(elapsedTime) {
-        const hours = Math.floor( elapsedTime/ 3600000 );
-        const minutes = Math.floor( elapsedTime/ 60000 ) % 60;
-        const seconds = Math.floor( elapsedTime/ 1000 ) % 60;
-        // const hundreths = Math.floor( elapsedTime/ 10 ) % 100;
+        const hours = Math.floor( elapsedTime / 3600000 );
+        const minutes = Math.floor( elapsedTime / 60000 ) % 60;
+        const seconds = Math.floor( elapsedTime / 1000 ) % 60;
+        // const hundreths = Math.floor( elapsedTime / 10 ) % 100;
 
         // Careful this breaks if number is bigger than the pad - but that can't happen here
-        const sHours = ("0000" + hours).slice(-2);
-        const sMinutes = ("0000" + minutes).slice(-2);
-        const sSeconds = ("0000" + seconds).slice(-2);
+        const sHours = ('0000' + hours).slice(-2);
+        const sMinutes = ('0000' + minutes).slice(-2);
+        const sSeconds = ('0000' + seconds).slice(-2);
         // const sHundreths = ("0000" + hundreths).slice(-2);
         // const sTenths = sHundreths % 10;
 
@@ -99,8 +99,8 @@ export default class Timer extends React.Component {
          displayTime.seconds = (seconds < 10 ? `0${seconds}` : seconds) ;
          displayTime.hundreths = (hundreths < 10 ? `0${hundreths}` : hundreths) ;
          */
-        return displayTime
-    };
+        return displayTime;
+    }
 
     // TODO: add start timer
     // TODO: grey out start while running?
