@@ -131,13 +131,22 @@ export default class Timer extends React.Component {
         return displayTime;
     }
 
-    // TODO: grey out start while running - it actually just restarts - is that wrong?
+    // TODO:
+    // header / footer info
+    // other timers
+    // settings
+    // font
     render() {
+        // Good enough for current usages
+        // TODO: font-size setting?
+        const headerStyle = {
+            fontSize: '20vw'
+        };
         return (
             <div>
                 <Jumbotron>
                     <div class="container text-center">
-                        <h1>{this.state.time}</h1>
+                        <h1 style={headerStyle}>{this.state.time}</h1>
                         <p>
                             <Button onClick={this.start.bind(this)} bsStyle="primary">3..2..1..Go</Button>
                             <Button onClick={this.stop.bind(this)} bsStyle="primary">Stop</Button>
