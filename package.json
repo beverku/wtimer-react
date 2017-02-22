@@ -1,6 +1,6 @@
 {
   "name": "wtimer-react",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Workout timer using ReactJS",
   "main": "index.js",
   "repository": {
