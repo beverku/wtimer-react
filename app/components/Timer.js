@@ -8,6 +8,7 @@ export default class Timer extends React.Component {
             start: null,
             end: null,
             time: '00:00',
+            isCountdown: false,
             isStarted: false,
             isStopped: true,
         };
@@ -16,7 +17,7 @@ export default class Timer extends React.Component {
     componentDidMount() {
         this.timerID = setInterval(
             () => this.tick(),
-            500
+            100
         );
     }
 
@@ -30,15 +31,26 @@ export default class Timer extends React.Component {
         this.setState({
             start: start,
             end: null,
+            inCountdown: true,
             isStarted: true,
             isStopped: false
         });
     }
     stop() {
-        const end = Date.now();
-        const elapsedTime = end - this.state.start;
-        const displayTime = this.getDisplayTime(elapsedTime);
+        // already stopped
+        if(this.state.isStopped) {
+            return;
+        }
 
+        const end = Date.now();
+        let elapsedTime;
+        if(this.state.inCountdown) {
+            elapsedTime = 0;
+        } else {
+            elapsedTime = end - this.state.start;
+        }
+
+        const displayTime = this.getDisplayTime(elapsedTime);
         this.setState({
             end: end,
             isStopped: true,
@@ -61,8 +73,25 @@ export default class Timer extends React.Component {
         this.setState({time});
     }
 
+    // TODO: countdown as setting?
     tick() {
-        if (this.state.isStarted && !this.state.isStopped) {
+        if (this.state.inCountdown && !this.state.isStopped) {
+            let elapsedTime = 10000 - (Date.now() - this.state.start);
+            if(elapsedTime <= 0) {
+                // Start real time
+                const start = Date.now();
+                this.setState({
+                    inCountdown: false,
+                    start: start,
+                });
+                elapsedTime = 0; // make sure it doesn't display negative
+            }
+
+            const displayTime = this.getDisplayTime(elapsedTime + 1000);
+            this.setState({
+                time: displayTime,
+            });
+        } else if (this.state.isStarted && !this.state.isStopped) {
             const elapsedTime = Date.now() - this.state.start;
             const displayTime = this.getDisplayTime(elapsedTime);
 
@@ -102,8 +131,7 @@ export default class Timer extends React.Component {
         return displayTime;
     }
 
-    // TODO: add start timer
-    // TODO: grey out start while running?
+    // TODO: grey out start while running - it actually just restarts - is that wrong?
     render() {
         return (
             <div>
