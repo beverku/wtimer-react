@@ -111,6 +111,7 @@ export default class Timer extends React.Component {
         const sHours = ('0000' + hours).slice(-2);
         const sMinutes = ('0000' + minutes).slice(-2);
         const sSeconds = ('0000' + seconds).slice(-2);
+        // TODO: setting
         // const sHundreths = ("0000" + hundreths).slice(-2);
         // const sTenths = sHundreths % 10;
 
@@ -132,8 +133,8 @@ export default class Timer extends React.Component {
     }
 
     // TODO:
-    // header / footer info
     // other timers
+    // keyboard navigation
     // settings
     // font
     render() {
