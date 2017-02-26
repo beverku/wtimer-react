@@ -3,11 +3,10 @@ import { Button, Jumbotron } from 'react-bootstrap';
 
 
 // TODO:
-// Fix zero transition - amrap, countdown
 // other timers
 // keyboard navigation
 // settings
-// Beep - Settings - On the minute (with spinner), Countdown, Tabata
+// Beep - Settings - On the minute (with spinner), Countdown(specify integers i.e. [3,2,1,0], Tabata, long beep on zero?
 // font
 // rounds with rest time? - or is that a tabata settings?
 export default class Timer extends React.Component {
@@ -98,6 +97,7 @@ export default class Timer extends React.Component {
         const endTime = (typeof end !== 'undefined') ?  end : Date.now();
 
         const elapsedTime = 10000 - (endTime - this.state.start);
+        //const elapsedTime = 3000 - (endTime - this.state.start);
         if(elapsedTime <= 0) {
             return 0; // make sure it doesn't display negative
         }
@@ -119,7 +119,7 @@ export default class Timer extends React.Component {
                 });
             }
 
-            const displayTime = this.getDisplayTime(elapsedTime + 1000);
+            const displayTime = this.getDisplayTime(elapsedTime, true);
             this.setState({
                 time: displayTime,
             });
@@ -144,25 +144,45 @@ export default class Timer extends React.Component {
     }
 
 
-    // TODO: when counting down do we need to take the ceiling instead of floor - then remove the +1000 above?
-    getDisplayTime(_elapsedTime) {
+    getDisplayTime(_elapsedTime, countdown = false) {
         let elapsedTime = _elapsedTime;
-        // console.log(elapsedTime);
+
         let negativeTime = false;
         if (elapsedTime < 0) {
             negativeTime = true;
-            elapsedTime = Math.abs(elapsedTime);
         }
-        const hours = Math.floor( elapsedTime / 3600000 );
-        const minutes = Math.floor( elapsedTime / 60000 ) % 60;
-        const seconds = Math.floor( elapsedTime / 1000 ) % 60;
-        // const hundreths = Math.floor( elapsedTime / 10 ) % 100;
+
+        // When counting up floor shows fully elapsed seconds / minutes etc.
+        // When counting down ceiling shows fully elapsed seconds / minutes etc.
+        let floorOrCeil = Math.floor;
+        if(countdown) {
+            floorOrCeil = Math.ceil;
+        }
+
+        // let hundreths = floorOrCeil( elapsedTime / 10 ) % 100;
+        // elapsedTime -= hundreths * 1000;
+
+        let seconds = floorOrCeil( elapsedTime / 1000 ) % 60;
+        elapsedTime -= seconds * 1000;
+
+        let minutes = floorOrCeil( elapsedTime / 60000 ) % 60;
+        elapsedTime -= minutes * 60000;
+
+        let hours = floorOrCeil( elapsedTime / 3600000 );
+        // elapsedTime -= hours * 3600000;
+
+
+        // hundreths = Math.abs(hundreths)
+        seconds = Math.abs(seconds);
+        minutes = Math.abs(minutes);
+        hours = Math.abs(hours);
+
 
         // Careful this breaks if number is bigger than the pad - but that can't happen here
         const sHours = ('0000' + hours).slice(-2);
         const sMinutes = ('0000' + minutes).slice(-2);
         const sSeconds = ('0000' + seconds).slice(-2);
-        // TODO: setting
+        // TODO: setting - tenths is just a different display of hundreths caluculation
         // const sHundreths = ("0000" + hundreths).slice(-2);
         // const sTenths = sHundreths % 10;
 
@@ -174,15 +194,10 @@ export default class Timer extends React.Component {
         // displayTime += `${sMinutes}:${sSeconds}.${sTenths}`;
         displayTime += `${sMinutes}:${sSeconds}`;
 
-        /* TODO - this may be a better way if we want to allow the user to tune the diplay
-         displayTime.hours = hours;
-         displayTime.minutes = (minutes < 10 ? `0${minutes}` : minutes) ;
-         displayTime.seconds = (seconds < 10 ? `0${seconds}` : seconds) ;
-         displayTime.hundreths = (hundreths < 10 ? `0${hundreths}` : hundreths) ;
-         */
-        if (negativeTime) {
+        if (negativeTime && displayTime !== '00:00') {
             displayTime = '- ' + displayTime;
         }
+
         return displayTime;
     }
 

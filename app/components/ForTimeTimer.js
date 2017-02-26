@@ -13,8 +13,7 @@ export default class ForTimeTimer extends Timer {
     }
 
     // eslint-disable-next-line no-unused-vars
-    // TODO: handleInput(e) { // eslint-disable-line no-unused-vars
-    handleInput() { // eslint-disable-line no-unused-vars
+    handleInput(e) {
         // no-op
     }
 }
