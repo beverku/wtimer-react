@@ -1,9 +1,25 @@
 import React from 'react';
 import { Button, Jumbotron } from 'react-bootstrap';
 
+
+// TODO:
+// Fix zero transition - amrap, countdown
+// other timers
+// keyboard navigation
+// settings
+// Beep - Settings - On the minute (with spinner), Countdown, Tabata
+// font
+// rounds with rest time? - or is that a tabata settings?
 export default class Timer extends React.Component {
     constructor(props) {
         super(props);
+
+        // TODO - make sure this works
+        if (this.getElapsedTime === undefined) {
+            // or maybe test typeof this.method === "function"
+            throw new TypeError('Must override getElapsedTime');
+        }
+
         this.state = {
             start: null,
             end: null,
@@ -28,14 +44,17 @@ export default class Timer extends React.Component {
 
     start() {
         const start = Date.now();
+        const countdownStart = this.getMsTime(this.state.time);
         this.setState({
             start: start,
             end: null,
             inCountdown: true,
             isStarted: true,
-            isStopped: false
+            isStopped: false,
+            countdownStart: countdownStart
         });
     }
+
     stop() {
         // already stopped
         if(this.state.isStopped) {
@@ -47,7 +66,7 @@ export default class Timer extends React.Component {
         if(this.state.inCountdown) {
             elapsedTime = 0;
         } else {
-            elapsedTime = end - this.state.start;
+            elapsedTime = this.getElapsedTime(end);
         }
 
         const displayTime = this.getDisplayTime(elapsedTime);
@@ -68,15 +87,29 @@ export default class Timer extends React.Component {
         });
     }
 
+    // TODO: same for now - but this should be disable on fortime
     handleInput(e) {
         const time  = e.target.value;
         this.setState({time});
     }
 
     // TODO: countdown as setting?
+    getInitialCountdownElapsedTime(end) {
+        const endTime = (typeof end !== 'undefined') ?  end : Date.now();
+
+        const elapsedTime = 10000 - (endTime - this.state.start);
+        if(elapsedTime <= 0) {
+            return 0; // make sure it doesn't display negative
+        }
+        return elapsedTime;
+    }
+
+    // different in elapsedTime in else if - probably same diff as end above
+    // make this a function that needs to be provided
+    // TODO: Document: After countdown it will actually display negative time - this allows to finish a workout with a time cap if desired
     tick() {
         if (this.state.inCountdown && !this.state.isStopped) {
-            let elapsedTime = 10000 - (Date.now() - this.state.start);
+            const elapsedTime = this.getInitialCountdownElapsedTime();
             if(elapsedTime <= 0) {
                 // Start real time
                 const start = Date.now();
@@ -84,7 +117,6 @@ export default class Timer extends React.Component {
                     inCountdown: false,
                     start: start,
                 });
-                elapsedTime = 0; // make sure it doesn't display negative
             }
 
             const displayTime = this.getDisplayTime(elapsedTime + 1000);
@@ -92,7 +124,7 @@ export default class Timer extends React.Component {
                 time: displayTime,
             });
         } else if (this.state.isStarted && !this.state.isStopped) {
-            const elapsedTime = Date.now() - this.state.start;
+            const elapsedTime = this.getElapsedTime();
             const displayTime = this.getDisplayTime(elapsedTime);
 
             this.setState({
@@ -101,7 +133,26 @@ export default class Timer extends React.Component {
         }
     }
 
-    getDisplayTime(elapsedTime) {
+    getMsTime(time) {
+        // TODO: if length is not two, or parts not POSITIVE integer - alert
+        // TODO: help text for hours i.e. just convert it to minutes
+        const timeComponents = time.split(':');
+        const minutes = parseInt(timeComponents[0]);
+        const seconds = parseInt(timeComponents[1]);
+        const ms = (minutes * 60 * 1000) + (seconds * 1000);
+        return ms;
+    }
+
+
+    // TODO: when counting down do we need to take the ceiling instead of floor - then remove the +1000 above?
+    getDisplayTime(_elapsedTime) {
+        let elapsedTime = _elapsedTime;
+        // console.log(elapsedTime);
+        let negativeTime = false;
+        if (elapsedTime < 0) {
+            negativeTime = true;
+            elapsedTime = Math.abs(elapsedTime);
+        }
         const hours = Math.floor( elapsedTime / 3600000 );
         const minutes = Math.floor( elapsedTime / 60000 ) % 60;
         const seconds = Math.floor( elapsedTime / 1000 ) % 60;
@@ -129,14 +180,12 @@ export default class Timer extends React.Component {
          displayTime.seconds = (seconds < 10 ? `0${seconds}` : seconds) ;
          displayTime.hundreths = (hundreths < 10 ? `0${hundreths}` : hundreths) ;
          */
+        if (negativeTime) {
+            displayTime = '- ' + displayTime;
+        }
         return displayTime;
     }
 
-    // TODO:
-    // other timers
-    // keyboard navigation
-    // settings
-    // font
     render() {
         // Good enough for current usages
         // TODO: font-size setting?
