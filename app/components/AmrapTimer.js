@@ -1,6 +1,6 @@
 import Timer from './Timer';
 
-export default class AmrapTimer extends Timer {
+export default class TabataTimer extends Timer {
     constructor(props) {
         super(props);
     }
@@ -16,4 +16,3 @@ export default class AmrapTimer extends Timer {
         return super.getDisplayTime(_elapsedTime, true);
     }
 }
-

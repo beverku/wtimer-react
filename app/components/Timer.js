@@ -3,7 +3,6 @@ import { Button, Jumbotron } from 'react-bootstrap';
 
 
 // TODO:
-// other timers
 // keyboard navigation
 // settings
 // Beep - Settings - On the minute (with spinner), Countdown(specify integers i.e. [3,2,1,0], Tabata, long beep on zero?
@@ -13,9 +12,7 @@ export default class Timer extends React.Component {
     constructor(props) {
         super(props);
 
-        // TODO - make sure this works
-        if (this.getElapsedTime === undefined) {
-            // or maybe test typeof this.method === "function"
+        if ( typeof this.getElapsedTime !== 'function') {
             throw new TypeError('Must override getElapsedTime');
         }
 
@@ -86,26 +83,23 @@ export default class Timer extends React.Component {
         });
     }
 
-    // TODO: same for now - but this should be disable on fortime
     handleInput(e) {
         const time  = e.target.value;
         this.setState({time});
     }
 
-    // TODO: countdown as setting?
     getInitialCountdownElapsedTime(end) {
         const endTime = (typeof end !== 'undefined') ?  end : Date.now();
 
+        // TODO: countdown as setting?
         const elapsedTime = 10000 - (endTime - this.state.start);
-        //const elapsedTime = 3000 - (endTime - this.state.start);
+        // const elapsedTime = 3000 - (endTime - this.state.start);
         if(elapsedTime <= 0) {
             return 0; // make sure it doesn't display negative
         }
         return elapsedTime;
     }
 
-    // different in elapsedTime in else if - probably same diff as end above
-    // make this a function that needs to be provided
     // TODO: Document: After countdown it will actually display negative time - this allows to finish a workout with a time cap if desired
     tick() {
         if (this.state.inCountdown && !this.state.isStopped) {
@@ -152,8 +146,8 @@ export default class Timer extends React.Component {
             negativeTime = true;
         }
 
-        // When counting up floor shows fully elapsed seconds / minutes etc.
-        // When counting down ceiling shows fully elapsed seconds / minutes etc.
+        // When counting up floor shows only fully elapsed seconds / minutes etc.
+        // When counting down ceiling shows only fully elapsed seconds / minutes etc.
         let floorOrCeil = Math.floor;
         if(countdown) {
             floorOrCeil = Math.ceil;
