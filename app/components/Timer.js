@@ -6,6 +6,7 @@ import { Button, Jumbotron } from 'react-bootstrap';
 // keyboard navigation
 // settings
 // Beep - Settings - On the minute (with spinner), Countdown(specify integers i.e. [3,2,1,0], Tabata, long beep on zero?
+// Tabata - display rounds and/or total countdown time
 // font
 // rounds with rest time? - or is that a tabata settings?
 export default class Timer extends React.Component {
@@ -15,6 +16,16 @@ export default class Timer extends React.Component {
         if ( typeof this.getElapsedTime !== 'function') {
             throw new TypeError('Must override getElapsedTime');
         }
+
+        // TODO: settings - make sure a second is only in one set or the other
+        this.shortBeeps = new Set([3, 2, 1]);
+        this.longBeeps = new Set([0]);
+
+        const shortBeepLength = 1000;
+        const longBeepLenth = shortBeepLength * 4;
+        this.shortBeep = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU' + Array(shortBeepLength).join(123));
+        this.longBeep = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU' + Array(longBeepLenth).join(123));
+
 
         this.state = {
             start: null,
@@ -93,7 +104,7 @@ export default class Timer extends React.Component {
 
         // TODO: countdown as setting?
         const elapsedTime = 10000 - (endTime - this.state.start);
-        // const elapsedTime = 3000 - (endTime - this.state.start);
+        //const elapsedTime = 3000 - (endTime - this.state.start);
         if(elapsedTime <= 0) {
             return 0; // make sure it doesn't display negative
         }
@@ -192,8 +203,23 @@ export default class Timer extends React.Component {
             displayTime = '- ' + displayTime;
         }
 
+        // Beeps
+        if(hours === 0 && minutes === 0) {
+            if(this.shortBeeps.has(seconds)) {
+                this.shortBeep.play();
+                // make sure it only beeps once for each second
+                this.shortBeeps.delete(seconds);
+            }
+            if(this.longBeeps.has(seconds)) {
+                this.longBeep.play();
+                // make sure it only beeps once for each second
+                this.longBeeps.delete(seconds);
+            }
+        }
+
         return displayTime;
     }
+
 
     render() {
         // Good enough for current usages
