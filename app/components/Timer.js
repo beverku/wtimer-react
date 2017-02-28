@@ -5,7 +5,6 @@ import { Button, Jumbotron } from 'react-bootstrap';
 // TODO:
 // keyboard navigation
 // settings
-// Beep - Settings - On the minute (with spinner), Countdown(specify integers i.e. [3,2,1,0], Tabata, long beep on zero?
 // Tabata - display rounds and/or total countdown time
 // font
 // rounds with rest time? - or is that a tabata settings?
@@ -18,8 +17,8 @@ export default class Timer extends React.Component {
         }
 
         // TODO: settings - make sure a second is only in one set or the other
-        this.shortBeeps = new Set([3, 2, 1]);
-        this.longBeeps = new Set([0]);
+        this.shortBeeps = new Set();
+        this.longBeeps = new Set();
 
         const shortBeepLength = 1000;
         const longBeepLenth = shortBeepLength * 4;
@@ -52,6 +51,9 @@ export default class Timer extends React.Component {
     start() {
         const start = Date.now();
         const countdownStart = this.getMsTime(this.state.time);
+        // TODO: settings - make sure a second is only in one set or the other
+        this.shortBeeps = new Set([3, 2, 1]);
+        this.longBeeps = new Set([0]);
         this.setState({
             start: start,
             end: null,
