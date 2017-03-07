@@ -1,13 +1,18 @@
 import React from 'react';
 import { Button, Jumbotron } from 'react-bootstrap';
+import { observer } from 'mobx-react';
+import store from './SettingsStore';
 
 
 // TODO:
 // keyboard navigation
-// settings
+// settings page
+// remember settings
 // Tabata - display rounds and/or total countdown time
 // font
 // rounds with rest time? - or is that a tabata settings?
+// pressing stop while in initial countdown - beeps on 0
+@observer
 export default class Timer extends React.Component {
     constructor(props) {
         super(props);
@@ -16,14 +21,13 @@ export default class Timer extends React.Component {
             throw new TypeError('Must override getElapsedTime');
         }
 
-        // TODO: settings - make sure a second is only in one set or the other
-        this.shortBeeps = new Set();
-        this.longBeeps = new Set();
+        this.shortBeeps = new Set(store.shortBeeps);
+        this.longBeeps = new Set(store.longBeeps);
 
         const shortBeepLength = 1000;
         const longBeepLenth = shortBeepLength * 4;
-        this.shortBeep = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU' + Array(shortBeepLength).join(123));
-        this.longBeep = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU' + Array(longBeepLenth).join(123));
+        this.shortBeepAudio = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU' + Array(shortBeepLength).join(123));
+        this.longBeepAudio = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU' + Array(longBeepLenth).join(123));
 
 
         this.state = {
@@ -39,7 +43,7 @@ export default class Timer extends React.Component {
     componentDidMount() {
         this.timerID = setInterval(
             () => this.tick(),
-            100
+            10
         );
     }
 
@@ -51,16 +55,16 @@ export default class Timer extends React.Component {
     start() {
         const start = Date.now();
         const countdownStart = this.getMsTime(this.state.time);
-        // TODO: settings - make sure a second is only in one set or the other
-        this.shortBeeps = new Set([3, 2, 1]);
-        this.longBeeps = new Set([0]);
+        // TODO make sure this is a copy
+        this.shortBeeps = new Set(store.shortBeeps);
+        this.longBeeps = new Set(store.longBeeps);
         this.setState({
             start: start,
             end: null,
             inCountdown: true,
             isStarted: true,
             isStopped: false,
-            countdownStart: countdownStart
+            countdownStart: countdownStart,
         });
     }
 
@@ -103,10 +107,9 @@ export default class Timer extends React.Component {
 
     getInitialCountdownElapsedTime(end) {
         const endTime = (typeof end !== 'undefined') ?  end : Date.now();
+        const countdownTimeMs = store.countdownTimeMs;
 
-        // TODO: countdown as setting?
-        const elapsedTime = 10000 - (endTime - this.state.start);
-        //const elapsedTime = 3000 - (endTime - this.state.start);
+        const elapsedTime = countdownTimeMs - (endTime - this.state.start);
         if(elapsedTime <= 0) {
             return 0; // make sure it doesn't display negative
         }
@@ -166,8 +169,8 @@ export default class Timer extends React.Component {
             floorOrCeil = Math.ceil;
         }
 
-        // let hundreths = floorOrCeil( elapsedTime / 10 ) % 100;
-        // elapsedTime -= hundreths * 1000;
+        let hundredths = floorOrCeil( elapsedTime / 10 ) % 100;
+        elapsedTime -= hundredths * 10;
 
         let seconds = floorOrCeil( elapsedTime / 1000 ) % 60;
         elapsedTime -= seconds * 1000;
@@ -179,27 +182,30 @@ export default class Timer extends React.Component {
         // elapsedTime -= hours * 3600000;
 
 
-        // hundreths = Math.abs(hundreths)
+        hundredths = Math.abs(hundredths);
         seconds = Math.abs(seconds);
         minutes = Math.abs(minutes);
         hours = Math.abs(hours);
-
 
         // Careful this breaks if number is bigger than the pad - but that can't happen here
         const sHours = ('0000' + hours).slice(-2);
         const sMinutes = ('0000' + minutes).slice(-2);
         const sSeconds = ('0000' + seconds).slice(-2);
-        // TODO: setting - tenths is just a different display of hundreths caluculation
-        // const sHundreths = ("0000" + hundreths).slice(-2);
-        // const sTenths = sHundreths % 10;
+        const sHundredths = ('0000' + hundredths).slice(-2);
+        const sTenths = parseInt(hundredths / 10);  // just a special case of hundredths
 
         let displayTime = '';
         if(hours >= 1) {
             displayTime = `${sHours}:`;
         }
-        // displayTime += `${sMinutes}:${sSeconds}.${sHundreths}`;
-        // displayTime += `${sMinutes}:${sSeconds}.${sTenths}`;
+
         displayTime += `${sMinutes}:${sSeconds}`;
+
+        if(store.displayHundredths) {
+            displayTime += `.${sHundredths}`;
+        } else if(store.displayTenths) {
+            displayTime += `.${sTenths}`;
+        }
 
         if (negativeTime && displayTime !== '00:00') {
             displayTime = '- ' + displayTime;
@@ -208,12 +214,12 @@ export default class Timer extends React.Component {
         // Beeps
         if(hours === 0 && minutes === 0) {
             if(this.shortBeeps.has(seconds)) {
-                this.shortBeep.play();
+                this.shortBeepAudio.play();
                 // make sure it only beeps once for each second
                 this.shortBeeps.delete(seconds);
             }
             if(this.longBeeps.has(seconds)) {
-                this.longBeep.play();
+                this.longBeepAudio.play();
                 // make sure it only beeps once for each second
                 this.longBeeps.delete(seconds);
             }
@@ -225,9 +231,8 @@ export default class Timer extends React.Component {
 
     render() {
         // Good enough for current usages
-        // TODO: font-size setting?
         const headerStyle = {
-            fontSize: '20vw'
+            fontSize: store.displayTimerTextSize,
         };
         return (
             <div>
@@ -242,6 +247,10 @@ export default class Timer extends React.Component {
                         <p>
                             Temporary until remote key import is working:
                             <input value={this.state.time} onChange={this.handleInput.bind(this)} />
+                        </p>
+                        <p>
+                            Debug: store.longBeeps={store.longBeeps}
+                            Debug: store.shortBeeps={store.shortBeeps}
                         </p>
                     </div>
                 </Jumbotron>

@@ -1,4 +1,5 @@
 import Timer from './Timer';
+import store from './SettingsStore';
 
 export default class AmrapTimer extends Timer {
     constructor(props) {
@@ -11,9 +12,8 @@ export default class AmrapTimer extends Timer {
     getElapsedTime(end) {
         const endTime = (typeof end !== 'undefined') ? end : Date.now();
 
-        // TODO: settings
-        const workTimeMs = 20 * 1000;
-        const restTimeMs = 10 * 1000;
+        const workTimeMs = store.tabataWorkTimeMs;
+        const restTimeMs = store.tabataRestTimeMs;
         const roundTimeMs = workTimeMs + restTimeMs;
 
         // actual elapsed time
@@ -25,11 +25,15 @@ export default class AmrapTimer extends Timer {
         }
 
         let roundElapsedTime = elapsedTime % roundTimeMs;
-        roundElapsedTime = parseInt(roundElapsedTime / 1000) * 1000;
+        // if not displaying sub-second time truncate down to the second
+        // this allows the round trasition to show the 20/10 etc. instead of 0
+        if( !(store.displayHundredths || store.displayTenths) ) {
+            roundElapsedTime = parseInt(roundElapsedTime / 1000) * 1000;
+        }
 
         let displayTime;
-        if(roundElapsedTime > restTimeMs) {
-            displayTime = roundElapsedTime - restTimeMs;
+        if(roundElapsedTime >= workTimeMs) {
+            displayTime = roundElapsedTime - workTimeMs;
         } else {
             displayTime = roundElapsedTime;
         }
